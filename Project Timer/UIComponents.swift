@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-// MARK: - Glass Button (Liquid Style)
+// MARK: - Liquid Glass Button
 struct GlassButton: View {
     let title: String
     let icon: String?
@@ -20,28 +20,40 @@ struct GlassButton: View {
             HStack(spacing: 10) {
                 if let icon = icon {
                     Image(systemName: icon)
-                        .font(.headline)
                 }
                 Text(title)
-                    .font(.headline.bold())
             }
+            .font(.headline.bold())
             .foregroundColor(isDisabled ? .secondary : color)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 18)
             .background(.regularMaterial, in: Capsule())
-            .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: 5)
-            .overlay(
-                Capsule()
-                    .stroke(isDisabled ? Color.clear : color.opacity(0.2), lineWidth: 0.5)
-            )
+            .overlay(Capsule().stroke(color.opacity(0.1), lineWidth: 0.5))
+            .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
         }
         .disabled(isDisabled)
-        .opacity(isDisabled ? 0.6 : 1.0)
-        .scaleEffect(isDisabled ? 1.0 : 0.98, anchor: .center) // Subtle press effect logic
+        .opacity(isDisabled ? 0.5 : 1.0)
     }
 }
 
-// MARK: - Glass Segment Control
+// MARK: - Liquid Glass Row
+struct GlassListRow<Content: View>: View {
+    let content: Content
+    
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+    
+    var body: some View {
+        content
+            .padding()
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(.white.opacity(0.1), lineWidth: 0.5))
+            .padding(.horizontal)
+            .padding(.vertical, 4)
+    }
+}
+
 struct GlassSegmentControl: View {
     @Binding var selection: Int
     let items: [String]

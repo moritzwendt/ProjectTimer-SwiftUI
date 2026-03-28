@@ -18,39 +18,53 @@ struct DeletedProjectsView: View {
     
     var body: some View {
         NavigationStack {
-            List(deletedProjects, selection: $selection) { project in
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(project.title)
-                            .font(.headline)
-                        Text("Archiviert am \(project.createdAt.formatted(date: .abbreviated, time: .omitted))")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    Spacer()
-                    if editMode == .inactive {
-                        Image(systemName: "archivebox")
-                            .foregroundColor(.secondary)
-                            .font(.subheadline)
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    ForEach(deletedProjects) { project in
+                        GlassListRow {
+                            HStack {
+                                if editMode == .active {
+                                    Image(systemName: selection.contains(project.id) ? "checkmark.circle.fill" : "circle")
+                                        .foregroundColor(selection.contains(project.id) ? .accentColor : .secondary)
+                                        .font(.title3)
+                                        .padding(.trailing, 8)
+                                        .onTapGesture {
+                                            if selection.contains(project.id) {
+                                                selection.remove(project.id)
+                                            } else {
+                                                selection.insert(project.id)
+                                            }
+                                        }
+                                }
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(project.title)
+                                        .font(.headline)
+                                    Text("Gelöscht am \(project.createdAt.formatted(date: .abbreviated, time: .omitted))")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                            }
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if editMode == .active {
+                                if selection.contains(project.id) {
+                                    selection.remove(project.id)
+                                } else {
+                                    selection.insert(project.id)
+                                }
+                            }
+                        }
                     }
                 }
-                .padding(.vertical, 4)
-                .listRowBackground(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(.regularMaterial)
-                        .padding(.vertical, 4)
-                        .padding(.horizontal, 8)
-                )
-                .listRowSeparator(.hidden)
-                .tag(project.id)
+                .padding(.top)
             }
-            .listStyle(.plain)
             .navigationTitle("Zuletzt gelöscht")
-            .environment(\.editMode, $editMode)
             .safeAreaInset(edge: .bottom) {
                 if editMode == .active {
-                    selectionBottomBar
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    glassBottomBar
                 }
             }
             .toolbar {
@@ -65,43 +79,37 @@ struct DeletedProjectsView: View {
             }
             .overlay {
                 if deletedProjects.isEmpty {
-                    ContentUnavailableView("Papierkorb leer", systemImage: "trash.fill")
+                    ContentUnavailableView("Keine Projekte", systemImage: "trash")
                 }
             }
         }
     }
     
-    private var selectionBottomBar: some View {
-        VStack(spacing: 0) {
-            Divider()
-            HStack(spacing: 20) {
-                Button(action: {
-                    withAnimation {
-                        store.restoreProjects(ids: selection)
-                        editMode = .inactive
-                    }
-                }) {
-                    Label("Wiederherstellen", systemImage: "arrow.uturn.backward.circle.fill")
-                        .font(.subheadline.bold())
+    private var glassBottomBar: some View {
+        HStack(spacing: 20) {
+            Button("Wiederherstellen") {
+                withAnimation {
+                    store.restoreProjects(ids: selection)
+                    editMode = .inactive
                 }
-                .disabled(selection.isEmpty)
-                
-                Spacer()
-                
-                Button(role: .destructive, action: {
-                    withAnimation {
-                        store.deletePermanently(ids: selection)
-                        editMode = .inactive
-                    }
-                }) {
-                    Label("Löschen", systemImage: "trash.circle.fill")
-                        .font(.subheadline.bold())
-                }
-                .disabled(selection.isEmpty)
             }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 20)
-            .background(.ultraThinMaterial)
+            .fontWeight(.semibold)
+            .disabled(selection.isEmpty)
+            
+            Spacer()
+            
+            Button("Löschen", role: .destructive) {
+                withAnimation {
+                    store.deletePermanently(ids: selection)
+                    editMode = .inactive
+                }
+            }
+            .fontWeight(.semibold)
+            .disabled(selection.isEmpty)
         }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 20)
+        .background(.regularMaterial) // Liquid Glass Bottom Bar
+        .overlay(Divider(), alignment: .top)
     }
 }

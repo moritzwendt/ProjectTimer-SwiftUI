@@ -46,9 +46,9 @@ struct ProjectsView: View {
                     Button { showAddSheet = true } label: { Image(systemName: "plus") }
                 }
             }
-            .alert("Projekt archivieren?", isPresented: $showDeleteAlert, presenting: projectToDelete) { project in
+            .alert("Projekt Löschen?", isPresented: $showDeleteAlert, presenting: projectToDelete) { project in
                 Button("Abbrechen", role: .cancel) { }
-                Button("Archivieren", role: .destructive) {
+                Button("Löschen", role: .destructive) {
                     withAnimation { store.archiveProject(project) }
                 }
             } message: { project in

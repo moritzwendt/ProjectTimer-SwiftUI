@@ -28,70 +28,65 @@ struct TimerView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                HStack {
+                // Header: Titel & Picker in einer Zeile
+                HStack(alignment: .firstTextBaseline) {
                     Text("Timer")
                         .font(.largeTitle.bold())
+                    
                     Spacer()
+                    
                     projectPickerHeader
                 }
-                .padding()
+                .padding(.horizontal)
+                .padding(.top)
 
                 GlassSegmentControl(selection: $timerMode, items: ["Stoppuhr", "Timer"])
-                    .padding(.horizontal)
+                    .padding()
                     .disabled(isRunning)
 
                 Spacer()
 
+                // Stable Display Area
                 ZStack {
                     if timerMode == 1 {
+                        // Timer Modus
                         if isRunning || elapsedTime > 0 {
                             progressRing
-                                .transition(.asymmetric(
-                                    insertion: .opacity.combined(with: .scale(scale: 0.9)),
-                                    removal: .opacity.combined(with: .scale(scale: 1.1))
-                                ))
+                                .transition(.scale(0.9).combined(with: .opacity))
                         }
                         
                         if !isRunning && elapsedTime == 0 {
                             wheelPicker
-                                .transition(.opacity.combined(with: .move(edge: .bottom)))
+                                .transition(.opacity)
                         } else {
-                            timeDisplay(size: 48)
+                            timeText(size: 48)
                         }
                     } else {
-                        timeDisplay(size: 60)
+                        // Stoppuhr Modus
+                        timeText(size: 60)
+                            .transition(.opacity.combined(with: .scale(1.1)))
                     }
                 }
-                .frame(height: 320)
-                .animation(.easeInOut(duration: 0.4), value: isRunning)
-                .animation(.easeInOut(duration: 0.4), value: timerMode)
+                .frame(height: 300)
+                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isRunning)
+                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: timerMode)
 
                 Spacer()
 
-                VStack(spacing: 14) {
+                // Control Buttons
+                VStack(spacing: 12) {
                     if isRunning {
-                        GlassButton(title: "Pause", icon: "pause.fill", color: .orange) {
-                            withAnimation { isRunning = false }
-                        }
-                        GlassButton(title: "Session beenden", icon: "checkmark", color: .green) {
-                            endSession()
-                        }
+                        GlassButton(title: "Pause", icon: "pause.fill", color: .orange) { isRunning = false }
+                        GlassButton(title: "Session beenden", icon: "checkmark", color: .green) { endSession() }
                     } else {
-                        GlassButton(
-                            title: "Start",
-                            icon: "play.fill",
-                            color: .blue,
-                            isDisabled: selectedProjectID == nil || (timerMode == 1 && hours == 0 && minutes == 0)
-                        ) {
+                        GlassButton(title: "Start", icon: "play.fill", color: .blue, isDisabled: selectedProjectID == nil || (timerMode == 1 && hours == 0 && minutes == 0)) {
                             startSession()
                         }
                         
                         if elapsedTime > 0 {
-                            GlassButton(title: "Session beenden", icon: "checkmark", color: .green) {
-                                endSession()
-                            }
+                            GlassButton(title: "Session beenden", icon: "checkmark", color: .green) { endSession() }
                         } else {
-                            Color.clear.frame(height: 58)
+                            Color.clear.frame(height: 56) // Placeholder
                         }
                     }
                 }
@@ -102,58 +97,52 @@ struct TimerView: View {
         }
     }
 
-    private func timeDisplay(size: CGFloat) -> some View {
-        Text(formatToTime(elapsedTime))
-            .font(.system(size: size, weight: .medium, design: .monospaced))
-            .monospacedDigit()
-            .minimumScaleFactor(0.5)
-            .padding(.horizontal, 40)
-            .contentTransition(.numericText())
-    }
-
-    private var progressRing: some View {
-        Circle()
-            .stroke(Color.primary.opacity(0.06), lineWidth: 10)
-            .frame(width: 270, height: 270)
-            .overlay {
-                if initialTimerSeconds > 0 {
-                    Circle()
-                        .trim(from: 0, to: elapsedTime / initialTimerSeconds)
-                        .stroke(
-                            LinearGradient(colors: [.accentColor, .accentColor.opacity(0.7)], startPoint: .top, endPoint: .bottom),
-                            style: StrokeStyle(lineWidth: 10, lineCap: .round)
-                        )
-                        .rotationEffect(.degrees(-90))
-                }
-            }
-    }
-
     private var projectPickerHeader: some View {
         Menu {
             Picker("Projekt", selection: $selectedProjectID) {
-                Text("Wählen").tag(UUID?.none)
+                Text("Projekt wählen").tag(UUID?.none)
                 ForEach(store.projects.filter { !$0.isDeleted }) { p in
                     Text(p.title).tag(UUID?.some(p.id))
                 }
             }
         } label: {
-            HStack(spacing: 4) {
-                Text(selectedProject?.title ?? "Projekt wählen")
-                    .fontWeight(.semibold)
-                Image(systemName: "chevron.right")
+            HStack(spacing: 6) {
+                Text(selectedProject?.title ?? "Wählen")
+                    .fontWeight(.medium)
+                Image(systemName: "chevron.up.chevron.down")
                     .font(.caption2.bold())
             }
             .foregroundColor(.accentColor)
             .padding(.horizontal, 12)
-            .padding(.vertical, 6)
+            .padding(.vertical, 8)
             .background(.ultraThinMaterial, in: Capsule())
         }
     }
 
+    private func timeText(size: CGFloat) -> some View {
+        Text(formatToTime(elapsedTime))
+            .font(.system(size: size, weight: .medium, design: .monospaced))
+            .monospacedDigit()
+            .minimumScaleFactor(0.5)
+            .contentTransition(.numericText())
+    }
+
+    private var progressRing: some View {
+        Circle()
+            .stroke(Color.primary.opacity(0.05), lineWidth: 10)
+            .frame(width: 270, height: 270)
+            .overlay {
+                Circle()
+                    .trim(from: 0, to: elapsedTime / initialTimerSeconds)
+                    .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+            }
+    }
+
     private var wheelPicker: some View {
         HStack(spacing: 0) {
-            Picker("h", selection: $hours) { ForEach(0..<24) { Text("\($0)h") } }.pickerStyle(.wheel).frame(width: 75)
-            Picker("m", selection: $minutes) { ForEach(0..<60) { Text("\($0)m") } }.pickerStyle(.wheel).frame(width: 75)
+            Picker("h", selection: $hours) { ForEach(0..<24) { Text("\($0)h") } }.pickerStyle(.wheel).frame(width: 70)
+            Picker("m", selection: $minutes) { ForEach(0..<60) { Text("\($0)m") } }.pickerStyle(.wheel).frame(width: 70)
         }
     }
 
@@ -169,7 +158,7 @@ struct TimerView: View {
             initialTimerSeconds = TimeInterval(hours * 3600 + minutes * 60)
             elapsedTime = initialTimerSeconds
         }
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) { isRunning = true }
+        withAnimation { isRunning = true }
     }
 
     private func endSession() {
@@ -177,10 +166,8 @@ struct TimerView: View {
             let tracked = timerMode == 0 ? elapsedTime : (initialTimerSeconds - elapsedTime)
             if tracked > 1 { store.addTime(to: id, seconds: tracked) }
         }
-        withAnimation(.easeOut) {
-            isRunning = false
-            elapsedTime = 0
-        }
+        isRunning = false
+        elapsedTime = 0
     }
 
     private func formatToTime(_ seconds: TimeInterval) -> String {
