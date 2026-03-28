@@ -35,16 +35,6 @@
 			path = "Project Timer";
 			sourceTree = "<group>";
 		};
-		8E32F9952F76E94000584FBD /* Project TimerTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Project TimerTests";
-			sourceTree = "<group>";
-		};
-		8E32F99F2F76E94000584FBD /* Project TimerUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Project TimerUITests";
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,8 +66,6 @@
 			isa = PBXGroup;
 			children = (
 				8E32F9852F76E93F00584FBD /* Project Timer */,
-				8E32F9952F76E94000584FBD /* Project TimerTests */,
-				8E32F99F2F76E94000584FBD /* Project TimerUITests */,
 				8E32F9842F76E93F00584FBD /* Products */,
 			);
 			sourceTree = "<group>";
@@ -130,9 +118,6 @@
 			dependencies = (
 				8E32F9942F76E94000584FBD /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				8E32F9952F76E94000584FBD /* Project TimerTests */,
-			);
 			name = "Project TimerTests";
 			packageProductDependencies = (
 			);
@@ -152,9 +137,6 @@
 			);
 			dependencies = (
 				8E32F99E2F76E94000584FBD /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				8E32F99F2F76E94000584FBD /* Project TimerUITests */,
 			);
 			name = "Project TimerUITests";
 			packageProductDependencies = (
